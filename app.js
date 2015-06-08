@@ -23,7 +23,7 @@ navigator.getUserMedia(
 		video: true
 	},
 	function (stream) {
-		document.getElementById('camFeed').src = window.URL.createObjectURL(stream);
+		document.querySelector('#camFeed').src = window.URL.createObjectURL(stream);
 	},
 	function (err) {
 		console.log("The following error occured: " + err.name);
