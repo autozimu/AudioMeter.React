@@ -28,8 +28,13 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || window
 
 var AudioMeter = React.createClass({
     getInitialState: function() {
-        var processor;
-
+        var processor = null;
+        return {
+            processor: processor,
+            debug: false
+        };
+    },
+    componentDidMount: function () {
         function process(event) {
             var buf = event.inputBuffer.getChannelData(0);
             var sum = 0;
@@ -100,11 +105,6 @@ var AudioMeter = React.createClass({
         ).catch(function(err){
                 console.log('Error occured: ' + err.name);
             });
-
-        return {
-            processor: processor,
-            debug: false
-        };
     },
     toggleDebug: function() {
         this.setState({
