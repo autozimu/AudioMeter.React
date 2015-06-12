@@ -24,9 +24,7 @@ if (!navigator.mediaDevices) {
 }
 
 // AudioContext
-window.AudioContext = window.AudioContext || window.webkitAudioContext;
-
-
+window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
 
 var AudioMeter = React.createClass({
     getInitialState: function() {
@@ -48,9 +46,24 @@ var AudioMeter = React.createClass({
 
             var rms = Math.sqrt(sum / buf.length);
             this.volume = Math.max(rms, this.volume * this.averaging);
-            var volumeNode = document.getElementById('audioMeter.volume');
-            volumeNode.textContent = 'Volume: ' + this.volume;
-            console.log('Volume: ' + this.volume);
+            // console.log('Volume: ' + this.volume);
+
+            var canvasCtx = document.getElementById('audioMeter.canvas').getContext('2d');
+            canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+
+            if (this.checkClipping()) {
+                canvasCtx.fillStyle = '#B20000';
+            }
+            else {
+                canvasCtx.fillStyle = '#00FF48';
+            }
+
+            canvasCtx.fillRect(0, 0, this.volume * canvasCtx.canvas.width * 1.4, canvasCtx.canvas.height);
+
+            var valueNode = document.getElementById('audioMeter.value');
+            if (valueNode) {
+                valueNode.textContent = 'Volume: ' + this.volume;
+            }
         }
 
         navigator.mediaDevices.getUserMedia(
@@ -89,10 +102,22 @@ var AudioMeter = React.createClass({
             });
 
         return {
-            processor: processor
+            processor: processor,
+            debug: false
         };
     },
+    toggleDebug: function() {
+        this.setState({
+            debug: !this.state.debug
+        });
+    },
     render: function() {
-        return <h1 id="audioMeter.volume"> Volume: </h1>;
+        return (
+            <div>
+                <canvas id="audioMeter.canvas" height="50" width="500"></canvas>
+                <button onClick={this.toggleDebug}>Debug</button>
+                { this.state.debug  ? <p id="audioMeter.value">Volume: </p> : null}
+            </div>
+        );
     }
 });
