@@ -1,12 +1,10 @@
-// Polyfills.
-
-// mediaDevices()
+// Polyfill: mediaDevices.
 navigator.mediaDevices = function() {
     if (navigator.mediaDevices) {
         return navigator.mediaDevices;
     }
 
-    navigator.getUserMedia = navigator.mozGetUserMedia || navigator.webkitGetUserMedia;
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
     if (navigator.getUserMedia) {
         return {
             getUserMedia: function (c) {
@@ -23,19 +21,22 @@ if (!navigator.mediaDevices) {
     throw new Error("getUserMedia() not supported.")
 }
 
-// AudioContext
-window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
+// Polyfill: AudioContext.
+window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext || window.msAudioContext;
 
 var AudioMeter = React.createClass({
+
     getInitialState: function() {
-        var processor = null;
         return {
-            processor: processor,
+            volume: 0,
             debug: false
         };
     },
+
     componentDidMount: function () {
-        function process(event) {
+
+        // Processing.
+        var process = function (event) {
             var buf = event.inputBuffer.getChannelData(0);
             var sum = 0;
             var x;
@@ -50,27 +51,26 @@ var AudioMeter = React.createClass({
             }
 
             var rms = Math.sqrt(sum / buf.length);
-            this.volume = Math.max(rms, this.volume * this.averaging);
-            // console.log('Volume: ' + this.volume);
+            this.setState({
+                volume: Math.max(rms, this.state.volume * this.averaging)
+            });
+            //console.log('Volume: ' + this.state.volume);
 
-            var canvasCtx = document.getElementById('audioMeter.canvas').getContext('2d');
-            canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+            //var canvasCtx = document.getElementById('audioMeter.canvas').getContext('2d');
+            //canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
+            //
+            //if (this.checkClipping()) {
+            //    canvasCtx.fillStyle = '#B20000';
+            //}
+            //else {
+            //    canvasCtx.fillStyle = '#00FF48';
+            //}
+            //
+            //canvasCtx.fillRect(0, 0, this.volume * canvasCtx.canvas.width * 1.4, canvasCtx.canvas.height);
+            //
+        }.bind(this);
 
-            if (this.checkClipping()) {
-                canvasCtx.fillStyle = '#B20000';
-            }
-            else {
-                canvasCtx.fillStyle = '#00FF48';
-            }
-
-            canvasCtx.fillRect(0, 0, this.volume * canvasCtx.canvas.width * 1.4, canvasCtx.canvas.height);
-
-            var valueNode = document.getElementById('audioMeter.value');
-            if (valueNode) {
-                valueNode.textContent = 'Volume: ' + this.volume;
-            }
-        }
-
+        // Init processing.
         navigator.mediaDevices.getUserMedia(
             {
                 audio: true
@@ -78,16 +78,14 @@ var AudioMeter = React.createClass({
         ).then(function(stream) {
                 var audioCtx = new AudioContext();
                 var mediaStreamSource = audioCtx.createMediaStreamSource(stream);
-                processor = audioCtx.createScriptProcessor(512);
-                processor.onaudioprocess = process;
-                processor.clipping = false;
-                processor.lastClip = 0;
-                processor.volume = 0;
-                processor.clipLevel = 0.98;
-                processor.averaging = 0.95;
-                processor.clipLag = 750;
-                processor.connect(audioCtx.destination);
-                processor.checkClipping = function () {
+                var processor = audioCtx.createScriptProcessor(512);
+
+                this.clipping = false;
+                this.lastClip = 0;
+                this.clipLevel = 0.98;
+                this.averaging = 0.95;
+                this.clipLag = 750;
+                this.checkClipping = function () {
                     if (!this.clipping) {
                         return false;
                     }
@@ -96,27 +94,27 @@ var AudioMeter = React.createClass({
                     }
                     return this.clipping;
                 };
-                processor.shutdown = function () {
-                    this.disconnect();
-                    this.onaudioprocess = null;
-                };
+
+                processor.onaudioprocess = process;
+                processor.connect(audioCtx.destination);
                 mediaStreamSource.connect(processor);
-            }
+            }.bind(this)
         ).catch(function(err){
                 console.log('Error occured: ' + err.name);
             });
     },
+
     toggleDebug: function() {
         this.setState({
             debug: !this.state.debug
         });
     },
+
     render: function() {
         return (
             <div>
-                <canvas id="audioMeter.canvas" height="50" width="500"></canvas>
                 <button onClick={this.toggleDebug}>Debug</button>
-                { this.state.debug  ? <p id="audioMeter.value">Volume: </p> : null}
+                { this.state.debug  ? <p>Volume: {this.state.volume}</p> : null}
             </div>
         );
     }
