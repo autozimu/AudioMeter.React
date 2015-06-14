@@ -67,7 +67,7 @@ var AudioMeter = React.createClass({
         ).then(function(stream) {
                 var audioCtx = new AudioContext();
                 var source = audioCtx.createMediaStreamSource(stream);
-                var processor = audioCtx.createScriptProcessor(512);
+                var processor = audioCtx.createScriptProcessor(256);
 
                 this.averaging = 0.95;
                 this.canvasCtx = document.getElementById('audiometer.canvas').getContext('2d');
