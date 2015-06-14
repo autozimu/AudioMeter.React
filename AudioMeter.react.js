@@ -31,7 +31,7 @@ var AudioMeter = React.createClass({
     getInitialState: function() {
         return {
             volume: 0,
-            debug: true
+            debug: false
         };
     },
 
@@ -45,10 +45,6 @@ var AudioMeter = React.createClass({
 
             for (var i = 0; i < buf.length; i++) {
                 x = buf[i];
-                if (Math.abs(x) >= this.clipLevel) {
-                    this.clipping = true;
-                    this.lastClip = window.performance.now();
-                }
                 sum += x * x;
             }
 
@@ -59,15 +55,7 @@ var AudioMeter = React.createClass({
             //console.log('Volume: ' + this.state.volume);
 
             this.canvasCtx.clearRect(0, 0, this.canvasCtx.canvas.width, this.canvasCtx.canvas.height);
-
-            if (this.checkClipping()) {
-                this.canvasCtx.fillStyle = '#B20000';
-            }
-            else {
-                this.canvasCtx.fillStyle = '#00FF48';
-            }
-
-            this.canvasCtx.fillRect(0, 0, this.state.volume * this.canvasCtx.canvas.width * 1.4, this.canvasCtx.canvas.height);
+            this.canvasCtx.fillRect(0, this.canvasCtx.canvas.height * (1 - this.state.volume), this.canvasCtx.canvas.width, this.canvasCtx.canvas.height);
 
         }.bind(this);
 
@@ -78,28 +66,16 @@ var AudioMeter = React.createClass({
             }
         ).then(function(stream) {
                 var audioCtx = new AudioContext();
-                var mediaStreamSource = audioCtx.createMediaStreamSource(stream);
+                var source = audioCtx.createMediaStreamSource(stream);
                 var processor = audioCtx.createScriptProcessor(512);
 
-                this.clipping = false;
-                this.lastClip = 0;
-                this.clipLevel = 0.98;
                 this.averaging = 0.95;
-                this.clipLag = 750;
-                this.checkClipping = function () {
-                    if (!this.clipping) {
-                        return false;
-                    }
-                    if ((this.lastClip + this.clipLag) < window.performance.now()) {
-                        this.clipping = false;
-                    }
-                    return this.clipping;
-                };
                 this.canvasCtx = document.getElementById('audiometer.canvas').getContext('2d');
+                this.canvasCtx.fillStyle = '#00FF48';
 
                 processor.onaudioprocess = process;
                 processor.connect(audioCtx.destination);
-                mediaStreamSource.connect(processor);
+                source.connect(processor);
             }.bind(this)
         ).catch(function(err){
                 console.log('Error occured: ' + err.name);
@@ -115,9 +91,10 @@ var AudioMeter = React.createClass({
     render: function() {
         return (
             <div>
+                <canvas id="audiometer.canvas" width="30" height="78"></canvas>
+                <p></p>
                 <button onClick={this.toggleDebug}>Debug</button>
-                { this.state.debug  ? <p>Volume: {this.state.volume}</p> : null}
-                <canvas id="audiometer.canvas" width="500" height="50"></canvas>
+                { this.state.debug  ? <p>Volume: {this.state.volume} </p>: null}
             </div>
         );
     }
