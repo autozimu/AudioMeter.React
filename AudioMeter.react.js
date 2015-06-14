@@ -29,7 +29,7 @@ var AudioMeter = React.createClass({
     getInitialState: function() {
         return {
             volume: 0,
-            debug: false
+            debug: true
         };
     },
 
@@ -56,18 +56,17 @@ var AudioMeter = React.createClass({
             });
             //console.log('Volume: ' + this.state.volume);
 
-            //var canvasCtx = document.getElementById('audioMeter.canvas').getContext('2d');
-            //canvasCtx.clearRect(0, 0, canvasCtx.canvas.width, canvasCtx.canvas.height);
-            //
-            //if (this.checkClipping()) {
-            //    canvasCtx.fillStyle = '#B20000';
-            //}
-            //else {
-            //    canvasCtx.fillStyle = '#00FF48';
-            //}
-            //
-            //canvasCtx.fillRect(0, 0, this.volume * canvasCtx.canvas.width * 1.4, canvasCtx.canvas.height);
-            //
+            this.canvasCtx.clearRect(0, 0, this.canvasCtx.canvas.width, this.canvasCtx.canvas.height);
+
+            if (this.checkClipping()) {
+                this.canvasCtx.fillStyle = '#B20000';
+            }
+            else {
+                this.canvasCtx.fillStyle = '#00FF48';
+            }
+
+            this.canvasCtx.fillRect(0, 0, this.state.volume * this.canvasCtx.canvas.width * 1.4, this.canvasCtx.canvas.height);
+
         }.bind(this);
 
         // Init processing.
@@ -94,6 +93,7 @@ var AudioMeter = React.createClass({
                     }
                     return this.clipping;
                 };
+                this.canvasCtx = document.getElementById('audiometer.canvas').getContext('2d');
 
                 processor.onaudioprocess = process;
                 processor.connect(audioCtx.destination);
@@ -115,6 +115,7 @@ var AudioMeter = React.createClass({
             <div>
                 <button onClick={this.toggleDebug}>Debug</button>
                 { this.state.debug  ? <p>Volume: {this.state.volume}</p> : null}
+                <canvas id="audiometer.canvas" width="500" height="50"></canvas>
             </div>
         );
     }
