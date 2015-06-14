@@ -1,4 +1,6 @@
 // Polyfill: mediaDevices.
+// Not work on Desktop Safari, IE.
+// Not work on Mobile browsers.
 navigator.mediaDevices = function() {
     if (navigator.mediaDevices) {
         return navigator.mediaDevices;
@@ -17,8 +19,8 @@ navigator.mediaDevices = function() {
     }
 }();
 if (!navigator.mediaDevices) {
-    console.log("mediaDevices() not supported.");
-    throw new Error("getUserMedia() not supported.")
+    alert("mediaDevices() not supported.");
+    throw new Error("mediaDevices() not supported.")
 }
 
 // Polyfill: AudioContext.
