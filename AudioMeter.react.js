@@ -78,7 +78,7 @@ var AudioMeter = React.createClass({
                 source.connect(processor);
             }.bind(this)
         ).catch(function(err){
-                console.log('Error occured: ' + err.name);
+                console.log('Error occurred while initalizing audio input: ' +  err.toString());
             });
     },
 
