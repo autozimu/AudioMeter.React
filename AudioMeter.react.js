@@ -70,7 +70,7 @@ var AudioMeter = React.createClass({
                 var processor = audioCtx.createScriptProcessor(256);
 
                 this.averaging = 0.95;
-                this.canvasCtx = document.getElementById('audiometer.canvas').getContext('2d');
+                this.canvasCtx = React.findDOMNode(this.refs.canvas).getContext('2d');
                 this.canvasCtx.fillStyle = '#00FF48';
 
                 processor.onaudioprocess = process;
@@ -91,7 +91,7 @@ var AudioMeter = React.createClass({
     render: function() {
         return (
             <div>
-                <canvas id="audiometer.canvas" width="30" height="78"></canvas>
+                <canvas ref="canvas" width="30" height="78"></canvas>
                 <p></p>
                 <button onClick={this.toggleDebug}>Debug</button>
                 { this.state.debug  ? <p>Volume: {this.state.volume} </p>: null}
