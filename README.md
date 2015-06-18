@@ -1,4 +1,4 @@
-AudioMeter using ReactJS.
+A reusable audio volume meter using ReactJS.
 
 Credits:
 
