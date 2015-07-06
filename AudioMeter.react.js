@@ -70,7 +70,7 @@ var AudioMeter = React.createClass({
                 var processor = audioCtx.createScriptProcessor(256);
 
                 this.averaging = 0.95;
-                this.canvasCtx = React.findDOMNode(this.refs.canvas).getContext('2d');
+                this.canvasCtx = this.refs.canvas.getContext('2d');
                 this.canvasCtx.fillStyle = '#00FF48';
 
                 processor.onaudioprocess = process;
